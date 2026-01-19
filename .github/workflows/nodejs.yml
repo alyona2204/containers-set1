@@ -1,0 +1,46 @@
+name: Node.js CI
+
+# Запуск при пуше или PR в main
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      # 1. Клонируем репозиторий
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Устанавливаем Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      # 3. Устанавливаем зависимости
+      - name: Install dependencies
+        run: npm install
+
+      # 4. Проверка ESLint
+      - name: Run ESLint
+        run: npx eslint src __tests__
+
+      # 5. Запуск тестов с покрытием
+      - name: Run tests
+        run: npm test -- --coverage
+
+      # 6. Загружаем отчет о покрытии как артефакт
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage
